@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: app
+        working-directory: app/src
 
     steps:
       - name: Checkout Code
