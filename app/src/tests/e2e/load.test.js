@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../../src/server');
+const app = require('../../server');
 
 describe('Load and Performance Tests', () => {
   it('should handle concurrent requests', async () => {
