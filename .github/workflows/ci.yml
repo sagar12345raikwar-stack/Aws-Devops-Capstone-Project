@@ -37,8 +37,8 @@ jobs:
         run: npm run lint || true
 
      
-      - name: Skip Tests
-        run: echo "Tests are temporarily skipped"        
+      - name: Run tests
+        run:  npm test        
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
