@@ -39,7 +39,7 @@ jobs:
          
       - name: Build Docker Image
         run: |
-        docker build -t my-app:${{ github.sha }} .
+          docker build -t my-app:${{ github.sha }} .
      
       - name: Skip tests
         run:  echo "Skip the test"      
