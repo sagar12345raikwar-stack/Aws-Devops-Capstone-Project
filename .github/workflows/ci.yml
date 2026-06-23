@@ -40,6 +40,28 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -t my-app:${{ github.sha }} .
+      
+       # ===== ECR START =====
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag Docker Image
+        run: |
+          docker tag my-app:${{ github.sha }} 486554618331.dkr.ecr.ap-southeast-2.amazonaws.com/my-node.js-image:latest
+
+      - name: Push Docker Image
+        run: |
+          docker push 486554618331.dkr.ecr.ap-southeast-2.amazonaws.com/my-node.js-image:latest
+      # ===== ECR END =====
+      
      
       - name: Skip tests
         run:  echo "Skip the test"      
