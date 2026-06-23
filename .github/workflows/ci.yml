@@ -17,10 +17,10 @@ jobs:
 
     defaults:
       run:
-        working-directory: src
+        working-directory: app/src
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Code  
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -32,13 +32,14 @@ jobs:
         run: npm install
 
       - name: Security Audit
-        run: npm run security-check || true
+        run: npm run security -check || true
 
       - name: Code Quality Check
         run: npm run lint || true
          
       - name: Build Docker Image
-        run: docker build -t my-app .
+        run: |
+        docker build -t my-app:${{ github.sha }} .
      
       - name: Skip tests
         run:  echo "Skip the test"      
