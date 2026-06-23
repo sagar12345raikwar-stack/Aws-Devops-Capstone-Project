@@ -1,4 +1,3 @@
-
 name: Continuous Integration
 
 on:
@@ -20,7 +19,7 @@ jobs:
         working-directory: app/src
 
     steps:
-      - name: Checkout Code  
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -32,16 +31,17 @@ jobs:
         run: npm install
 
       - name: Security Audit
-        run: npm run security -check || true
+        run: npm run security-check || true
 
       - name: Code Quality Check
         run: npm run lint || true
-         
+
+      # ===== BUILD DOCKER IMAGE =====
       - name: Build Docker Image
         run: |
           docker build -t my-app:${{ github.sha }} .
-      
-       # ===== ECR START =====
+
+      # ===== ECR START =====
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -53,18 +53,20 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Tag Docker Image
+      - name: Build, Tag and Push to ECR
+        env:
+          ECR_URI: 486554618331.dkr.ecr.ap-southeast-2.amazonaws.com/my-node.js-image
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker tag my-app:${{ github.sha }} 486554618331.dkr.ecr.ap-southeast-2.amazonaws.com/my-node.js-image:latest
+          docker tag my-app:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+          docker tag my-app:$IMAGE_TAG $ECR_URI:latest
 
-      - name: Push Docker Image
-        run: |
-          docker push 486554618331.dkr.ecr.ap-southeast-2.amazonaws.com/my-node.js-image:latest
+          docker push $ECR_URI:$IMAGE_TAG
+          docker push $ECR_URI:latest
       # ===== ECR END =====
-      
-     
+
       - name: Skip tests
-        run:  echo "Skip the test"      
+        run: echo "Skip the test"
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
@@ -86,4 +88,4 @@ jobs:
           echo "Status: ${{ job.status }}"
           echo "Branch: ${{ github.ref_name }}"
           echo "Triggered By: ${{ github.actor }}"
-          echo "================================="/
+          echo "================================="
