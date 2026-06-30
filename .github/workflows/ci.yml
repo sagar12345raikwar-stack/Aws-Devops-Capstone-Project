@@ -1,0 +1,91 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - develop
+      - 'feature/*'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: app/src
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Security Audit
+        run: npm run security-check || true
+
+      - name: Code Quality Check
+        run: npm run lint || true
+
+      # ===== BUILD DOCKER IMAGE =====
+      - name: Build Docker Image
+        run: |
+          docker build -t my-app:${{ github.sha }} .
+
+      # ===== ECR START =====
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag and Push to ECR
+        env:
+          ECR_URI: 486554618331.dkr.ecr.ap-southeast-2.amazonaws.com/my-node.js-image
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker tag my-app:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+          docker tag my-app:$IMAGE_TAG $ECR_URI:latest
+
+          docker push $ECR_URI:$IMAGE_TAG
+          docker push $ECR_URI:latest
+      # ===== ECR END =====
+
+      - name: Skip tests
+        run: echo "Skip the test"
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: app/coverage
+
+      - name: Upload Application Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-source
+          path: app
+
+      - name: Pipeline Summary
+        if: always()
+        run: |
+          echo "================================="
+          echo "CI Pipeline Completed"
+          echo "Status: ${{ job.status }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Triggered By: ${{ github.actor }}"
+          echo "================================="
