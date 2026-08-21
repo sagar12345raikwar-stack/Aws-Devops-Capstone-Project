@@ -62,7 +62,6 @@ jobs:
           docker tag my-app:$IMAGE_TAG $ECR_URI:latest
 
           docker push $ECR_URI:$IMAGE_TAG
-          docker push $ECR_URI:latest
       # ===== ECR END =====
 
       - name: Skip tests
