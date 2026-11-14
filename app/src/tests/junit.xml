@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="10" failures="6" errors="0" time="4.649">
+  <testsuite name="Enterprise DevOps Application - Unit Tests" errors="0" failures="6" skipped="0" timestamp="2026-10-30T08:36:31" time="4.524" tests="10">
+    <testcase classname="Enterprise DevOps Application - Unit Tests GET / should return welcome message with request ID" name="Enterprise DevOps Application - Unit Tests GET / should return welcome message with request ID" time="0.073">
+    </testcase>
+    <testcase classname="Enterprise DevOps Application - Unit Tests GET /health should return comprehensive health status" name="Enterprise DevOps Application - Unit Tests GET /health should return comprehensive health status" time="1.668">
+      <failure>TypeError: expect(...).toBeOneOf is not a function
+    at Object.toBeOneOf (/home/sagar/Desktop/Capstone-Project/Aws-Devops-Capstone-Project/app/src/tests/unit/server.test.js:41:30)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Enterprise DevOps Application - Unit Tests GET /api/v1/products should return products with caching metadata" name="Enterprise DevOps Application - Unit Tests GET /api/v1/products should return products with caching metadata" time="0.011">
+    </testcase>
+    <testcase classname="Enterprise DevOps Application - Unit Tests GET /api/v1/products should handle Redis errors gracefully" name="Enterprise DevOps Application - Unit Tests GET /api/v1/products should handle Redis errors gracefully" time="0.018">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 500
+Received: 200
+    at Object.toEqual (/home/sagar/Desktop/Capstone-Project/Aws-Devops-Capstone-Project/app/src/tests/unit/server.test.js:61:30)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Enterprise DevOps Application - Unit Tests GET /api/v1/circuit-status should return circuit breaker status" name="Enterprise DevOps Application - Unit Tests GET /api/v1/circuit-status should return circuit breaker status" time="0.019">
+      <failure>TypeError: expect(...).toBeOneOf is not a function
+    at Object.toBeOneOf (/home/sagar/Desktop/Capstone-Project/Aws-Devops-Capstone-Project/app/src/tests/unit/server.test.js:70:37)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Enterprise DevOps Application - Unit Tests Rate limiting should enforce rate limits" name="Enterprise DevOps Application - Unit Tests Rate limiting should enforce rate limits" time="0.752">
+    </testcase>
+    <testcase classname="Enterprise DevOps Application - Unit Tests Request ID middleware should generate request ID if not provided" name="Enterprise DevOps Application - Unit Tests Request ID middleware should generate request ID if not provided" time="0.024">
+    </testcase>
+    <testcase classname="Enterprise DevOps Application - Unit Tests Request ID middleware should use provided request ID" name="Enterprise DevOps Application - Unit Tests Request ID middleware should use provided request ID" time="0.018">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: &quot;test-request-123&quot;
+Received: undefined
+    at Object.toEqual (/home/sagar/Desktop/Capstone-Project/Aws-Devops-Capstone-Project/app/src/tests/unit/server.test.js:100:34)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Enterprise DevOps Application - Unit Tests Error handling should handle simulated errors" name="Enterprise DevOps Application - Unit Tests Error handling should handle simulated errors" time="0.019">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 500
+Received: 429
+    at Object.toEqual (/home/sagar/Desktop/Capstone-Project/Aws-Devops-Capstone-Project/app/src/tests/unit/server.test.js:107:30)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Enterprise DevOps Application - Unit Tests Error handling should return 404 for unknown routes" name="Enterprise DevOps Application - Unit Tests Error handling should return 404 for unknown routes" time="0.01">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 404
+Received: 429
+    at Object.toEqual (/home/sagar/Desktop/Capstone-Project/Aws-Devops-Capstone-Project/app/src/tests/unit/server.test.js:112:30)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

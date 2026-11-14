@@ -88,3 +88,13 @@ jobs:
           echo "Branch: ${{ github.ref_name }}"
           echo "Triggered By: ${{ github.actor }}"
           echo "================================="
+
+      - name: Scan repository with Trivy
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig,secret
+          serverity: HIGH, CRITICAL
+          format: table
+          exit-code: "1"

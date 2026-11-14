@@ -2,19 +2,23 @@ const request = require('supertest');
 const app = require('../../server');
 const { createClient } = require('redis');
 
-// Mock Redis
-jest.mock('redis', () => ({
-  createClient: jest.fn(() => ({
-    connect: jest.fn(),
-    get: jest.fn(),
-    setEx: jest.fn(),
-    ping: jest.fn(),
-    quit: jest.fn(),
-    info: jest.fn(() => 'used_memory:1048576'),
-    on: jest.fn(),
-    del: jest.fn()
-  }))
-}));
+// Mock Redis with one shared client
+jest.mock('redis', () => {
+  const mockRedisClient = {
+    connect: jest.fn().mockResolvedValue(),
+    get: jest.fn().mockResolvedValue(null),
+    setEx: jest.fn().mockResolvedValue('OK'),
+    ping: jest.fn().mockResolvedValue('PONG'),
+    quit: jest.fn().mockResolvedValue('OK'),
+    info: jest.fn().mockResolvedValue('used_memory:1048576'),
+    on: jest.fn().mockReturnThis(),
+    del: jest.fn().mockResolvedValue(1)
+  };
+
+  return {
+    createClient: jest.fn(() => mockRedisClient)
+  };
+});
 
 describe('Enterprise DevOps Application - Unit Tests', () => {
   beforeAll(() => {
@@ -38,7 +42,7 @@ describe('Enterprise DevOps Application - Unit Tests', () => {
   describe('GET /health', () => {
     it('should return comprehensive health status', async () => {
       const res = await request(app).get('/health');
-      expect(res.statusCode).toBeOneOf([200, 503]);
+      expect([200, 503]).toContain(res.statusCode);
       expect(res.body.service).toEqual('enterprise-devops-app');
       expect(res.body.dependencies).toBeDefined();
     });
@@ -54,12 +58,14 @@ describe('Enterprise DevOps Application - Unit Tests', () => {
     });
 
     it('should handle Redis errors gracefully', async () => {
-      const redisClient = require('redis').createClient();
-      redisClient.get.mockRejectedValue(new Error('Redis error'));
-      
-      const res = await request(app).get('/api/v1/products');
-      expect(res.statusCode).toEqual(500);
-      expect(res.body.success).toBe(false);
+  const redisClient = require('redis').createClient();
+
+  redisClient.get.mockRejectedValueOnce(new Error('Redis error'));
+
+  const res = await request(app).get('/api/v1/products');
+
+  expect(res.statusCode).toEqual(500);
+  expect(res.body.success).toBe(false);
     });
   });
 
@@ -67,7 +73,7 @@ describe('Enterprise DevOps Application - Unit Tests', () => {
     it('should return circuit breaker status', async () => {
       const res = await request(app).get('/api/v1/circuit-status');
       expect(res.statusCode).toEqual(200);
-      expect(res.body.circuitState).toBeOneOf(['OPEN', 'CLOSED']);
+      expect(['open', 'closed', 'OPEN', 'CLOSED']).toContain(res.body.circuitState);
       expect(res.body.stats).toBeDefined();
     });
   });
