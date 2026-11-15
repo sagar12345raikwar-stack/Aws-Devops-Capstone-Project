@@ -1,5 +1,5 @@
 # Use official Node.js image
-FROM node:18
+FROM node:20-alpine
 
 # Set working directory inside container
 WORKDIR /app
@@ -8,10 +8,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
+RUN npm ci --omit=dev
 RUN npm install
 
 # Copy all project files
-COPY . .
+COPY --chown=node:node . .
+USER node
+
 
 # Expose application port
 EXPOSE 3000

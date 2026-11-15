@@ -1,3 +1,10 @@
+resource "aws_kms_key" "eks" {
+  description             = "EKS secrets encryption key"
+  deletion_window_in_days = 10
+  enable_key_rotation     = true
+}
+
+
 resource "aws_eks_cluster" "main" {
   name     = "${var.project_name}-eks"
   role_arn = aws_iam_role.eks_cluster_role.arn
@@ -10,7 +17,16 @@ resource "aws_eks_cluster" "main" {
     endpoint_private_access = true
     endpoint_public_access  = true
   }
-# aws cloudwatch service
+  encryption_config {
+    provider {
+      key_arn = aws_kms_key.eks.arn
+    }
+
+    resources = ["secrets"]
+  }
+
+
+  # aws cloudwatch service
   enabled_cluster_log_types = [
     "api",
     "audit",
