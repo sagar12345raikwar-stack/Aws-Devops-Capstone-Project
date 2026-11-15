@@ -1,3 +1,4 @@
+
 name: Continuous Integration
 
 on:
@@ -5,13 +6,19 @@ on:
     branches:
       - develop
       - 'feature/*'
+
   pull_request:
     branches:
       - main
       - develop
 
 jobs:
+
+  # ==========================================
+  # JOB 1: CI, Docker Build and ECR Deployment
+  # ==========================================
   ci:
+    name: CI and Docker Build
     runs-on: ubuntu-latest
 
     defaults:
@@ -36,49 +43,58 @@ jobs:
       - name: Code Quality Check
         run: npm run lint || true
 
-      # ===== BUILD DOCKER IMAGE =====
+      # Build Docker Image
       - name: Build Docker Image
-        run: |
-          docker build -t my-app:${{ github.sha }} .
+        run: docker build -t my-app:${{ github.sha }} .
 
-      # ===== ECR START =====
+      # Configure AWS Credentials (Push events only)
       - name: Configure AWS Credentials
+        if: github.event_name == 'push'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
 
+      # Login to Amazon ECR
       - name: Login to Amazon ECR
+        if: github.event_name == 'push'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # Tag and Push Docker Image
       - name: Build, Tag and Push to ECR
+        if: github.event_name == 'push'
         env:
           ECR_URI: 486554618331.dkr.ecr.ap-southeast-2.amazonaws.com/my-node.js-image
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker tag my-app:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
           docker tag my-app:$IMAGE_TAG $ECR_URI:latest
-
           docker push $ECR_URI:$IMAGE_TAG
-      # ===== ECR END =====
+          docker push $ECR_URI:latest
 
-      - name: Skip tests
-        run: echo "Skip the test"
+      # Tests
+      - name: Skip Tests
+        run: echo "Tests are not configured yet."
 
+      # Upload Coverage Report
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: app/coverage
+          if-no-files-found: ignore
 
+      # Upload Application Artifact
       - name: Upload Application Artifact
         uses: actions/upload-artifact@v4
         with:
           name: application-source
           path: app
+          if-no-files-found: warn
 
+      # Pipeline Summary
       - name: Pipeline Summary
         if: always()
         run: |
@@ -89,16 +105,21 @@ jobs:
           echo "Triggered By: ${{ github.actor }}"
           echo "================================="
 
-    trivy-scan:
-      - name: Install Latest Trivy
-        uses: aquasecurity/setup-trivy@v0.2.0
-        with:
-          version: v0.76.2
+  # ==========================================
+  # JOB 2: TRIVY SECURITY SCAN
+  # ==========================================
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Run Trivy Security Scan
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@0.36.0
         with:
-          skip-setup-trivy: true
+          version: v0.76.2
           scan-type: fs
           scan-ref: .
           scanners: vuln,misconfig,secret
