@@ -89,7 +89,7 @@ jobs:
           echo "Triggered By: ${{ github.actor }}"
           echo "================================="
 
-  trivy-scan:
+    trivy-scan:
       - name: Install Latest Trivy
         uses: aquasecurity/setup-trivy@v0.2.0
         with:
