@@ -70,9 +70,11 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker tag my-app:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
-          docker tag my-app:$IMAGE_TAG $ECR_URI:latest
           docker push $ECR_URI:$IMAGE_TAG
-          docker push $ECR_URI:latest
+          
+          echo "Docker image pushed successfully!"
+          echo "Image: $ECR_URI:$IMAGE_TAG"
+          
 
       # Tests
       - name: Skip Tests
