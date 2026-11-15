@@ -89,12 +89,23 @@ jobs:
           echo "Triggered By: ${{ github.actor }}"
           echo "================================="
 
-      - name: Scan repository with Trivy
-        uses: aquasecurity/trivy-action@0.36.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln,misconfig,secret
-          serverity: HIGH, CRITICAL
-          format: table
-          exit-code: "1"
+
+
+      trivy-scan 
+        name: Trivy Security Scan 
+        runs-on: ubuntu-latest
+
+      steps: 
+       - name: Checkout Repository
+         uses: actions/checkout@v4
+
+       - name: Scan repository with Trivy
+         uses: aquasecurity/trivy-action@0.36.0
+         with:
+           scan-type: fs
+           scan-ref: .
+           scanners: vuln,misconfig,secret
+           serverity: HIGH, CRITICAL
+           format: table
+           exit-code: "1"
+           ingnore-unfixed: true
