@@ -91,7 +91,7 @@ jobs:
 
 
 
-      trivy-scan:
+    trivy-scan:
         name: Trivy Security Scan 
         runs-on: ubuntu-latest
 
