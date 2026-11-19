@@ -32,6 +32,15 @@ jobs:
         with:
           terraform_version: 1.17.2
 
+      - name: Check Terraform Files
+        run: |
+          pwd
+          ls -la
+          ls -la terraform/
+
+
+
+
       - name: Terraform Init
         run: terraform init
         working-directory: terraform
