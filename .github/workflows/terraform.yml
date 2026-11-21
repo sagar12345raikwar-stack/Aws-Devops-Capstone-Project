@@ -62,6 +62,13 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -input=false
+ 
+      - name: Clear Tainted IAM Roles
+        run: |
+          terraform untaint aws_iam_role.eks_cluster_role
+          terraform untaint aws_iam_role.eks_node_role
+        working-directory: terraform
+
 
       - name: Terraform Format
         run: terraform fmt -check -recursive
