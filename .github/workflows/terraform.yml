@@ -72,9 +72,18 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -input=false -out=tfplan
 
+      
       - name: Prevent Resource Destruction
         run: |
           terraform show -json tfplan > plan.json
+
+          echo "Checking resources marked for deletion..."
+
+          jq -r '
+            .resource_changes[]?
+            | select(.change.actions | index("delete"))
+            | "\(.address) : \(.change.actions | join(", "))"
+          ' plan.json
 
           if jq -e '[.resource_changes[]?.change.actions[]?] | any(. == "delete")' plan.json > /dev/null; then
             echo "ERROR: Destructive changes detected. Apply stopped."
@@ -82,6 +91,7 @@ jobs:
           fi
 
           echo "No resource destruction detected."
+
 
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan
