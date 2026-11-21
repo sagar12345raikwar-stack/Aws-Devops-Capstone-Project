@@ -1,59 +1,73 @@
+
 name: Terraform Infrastructure
 
 on:
-  workflow_dispatch:
-    inputs:
-      apply:
-        description: "Apply Terraform changes?"
-        required: true
-        type: boolean
-        default: false
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yml'
 
 permissions:
   id-token: write
   contents: read
 
+concurrency:
+  group: terraform-develop
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-southeast-2
+  TF_IN_AUTOMATION: true
+
 jobs:
   terraform:
+    name: Terraform Deployment
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: terraform
+
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Configure AWS
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ap-southeast-2
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.17.2
 
-      - name: Check Terraform Files
-        run: |
-          pwd
-          ls -la
-          ls -la terraform/
-
-
-
-
       - name: Terraform Init
-        run: terraform init
-        working-directory: terraform
+        run: terraform init -input=false
+
+      - name: Terraform Format
+        run: terraform fmt -check -recursive
 
       - name: Terraform Validate
         run: terraform validate
-        working-directory: terraform
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
-        working-directory: terraform
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Prevent Resource Destruction
+        run: |
+          terraform show -json tfplan > plan.json
+
+          if jq -e '[.resource_changes[]?.change.actions[]?] | any(. == "delete")' plan.json > /dev/null; then
+            echo "ERROR: Destructive changes detected. Apply stopped."
+            exit 1
+          fi
+
+          echo "No resource destruction detected."
 
       - name: Terraform Apply
-        if: ${{ inputs.apply }}
-        run: terraform apply -auto-approve tfplan
-        working-directory: terraform
+        run: terraform apply -input=false -auto-approve tfplan
